@@ -1,0 +1,239 @@
+
+
+<!DOCTYPE html>
+
+<html lang="fr">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<meta name="theme-color" content="#080d1b">
+
+<title>NOVA AI</title>
+
+<style>
+
+*{box-sizing:border-box}
+
+body{margin:0;background:#080d1b;color:#f4f7ff;font-family:Arial,sans-serif}
+
+header{padding:22px;background:#111a2d;border-bottom:1px solid #30405b;display:flex;align-items:center;gap:12px}
+
+.logo{background:linear-gradient(135deg,#6c8cff,#59e1df);color:#071020;font-weight:bold;font-size:25px;padding:13px;border-radius:14px}
+
+h1{margin:0;letter-spacing:2px}
+
+header p,.muted{color:#a0aec5;font-size:13px}
+
+main{max-width:720px;margin:auto;padding:18px}
+
+.hero{padding:25px;border-radius:20px;background:linear-gradient(135deg,#19284b,#10182b);border:1px solid #34476c}
+
+.tag{color:#59e1df;font-size:12px;letter-spacing:2px}
+
+h2{font-size:29px}
+
+.card{margin-top:16px;padding:18px;background:#111a2d;border:1px solid #25334b;border-radius:17px}
+
+input,textarea{width:100%;padding:13px;margin:7px 0;background:#0a1222;color:white;border:1px solid #34445f;border-radius:10px;font-size:15px}
+
+textarea{min-height:80px}
+
+button{padding:12px 15px;border:0;border-radius:10px;background:linear-gradient(100deg,#6c8cff,#59e1df);font-weight:bold;cursor:pointer}
+
+.secondary{background:#263651;color:white}
+
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+
+.stat{background:#111a2d;border:1px solid #25334b;border-radius:15px;padding:15px}
+
+.stat strong{font-size:25px;display:block}
+
+.stat span{color:#a0aec5;font-size:12px}
+
+.item{display:flex;gap:8px;align-items:center;padding:10px;margin-top:8px;background:#0a1222;border-radius:10px;overflow-wrap:anywhere}
+
+.item span{flex:1}
+
+.item button{padding:7px;background:#29334a;color:white}
+
+#chat{height:230px;overflow:auto;background:#0a1222;border-radius:10px;padding:10px;margin-bottom:10px}
+
+.msg{padding:11px;margin:7px 0;border-radius:12px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px}
+
+.bot{background:#1b2a45}
+
+.user{background:#344f91;margin-left:15%}
+
+footer{text-align:center;color:#a0aec5;font-size:12px;padding:25px}
+
+</style>
+
+</head>
+
+<body>
+
+<header>
+
+<div class="logo">N</div>
+
+<div><h1>NOVA AI</h1><p>TES IDÉES. TON AVENIR.</p></div>
+
+</header>
+
+<main>
+
+<section class="hero">
+
+<div class="tag">TON ESPACE INTELLIGENT</div>
+
+<h2>Transforme tes idées en projets concrets.</h2>
+
+<p class="muted">Organise tes objectifs, garde tes idées et avance chaque jour.</p>
+
+<button onclick="document.getElementById('idea').scrollIntoView()">+ Nouvelle idée</button>
+
+<button class="secondary" onclick="document.getElementById('assistant').scrollIntoView()">Parler à NOVA</button>
+
+</section>
+
+<div class="stats">
+
+<div class="stat"><strong id="doneCount">0</strong><span>Tâches terminées</span></div>
+
+<div class="stat"><strong id="ideaCount">0</strong><span>Idées enregistrées</span></div>
+
+</div>
+
+<section class="card" id="idea">
+
+<h3>💡 Mon carnet d'idées</h3>
+
+<input id="ideaTitle" placeholder="Nom de ton idée">
+
+<textarea id="ideaText" placeholder="Décris ton idée ou ton projet"></textarea>
+
+<button onclick="addIdea()">Enregistrer l'idée</button>
+
+<div id="ideas"></div>
+
+</section>
+
+<section class="card">
+
+<h3>🎯 Mes tâches</h3>
+
+<input id="taskInput" placeholder="Ma prochaine mission">
+
+<button onclick="addTask()">Ajouter une tâche</button>
+
+<div id="tasks"></div>
+
+</section>
+
+<section class="card" id="assistant">
+
+<h3>✨ Assistant NOVA</h3>
+
+<p class="muted">Version de démonstration : l'IA avancée n'est pas encore connectée.</p>
+
+<div id="chat"><div class="msg bot">Salut ! Je suis NOVA. Quel projet veux-tu faire avancer aujourd'hui ?</div></div>
+
+<form id="chatForm">
+
+<input id="chatInput" placeholder="Écris ton message..." required>
+
+<button type="submit">Envoyer ➤</button>
+
+</form>
+
+</section>
+
+<footer>NOVA AI · Version 1.0</footer>
+
+</main>
+
+<script>
+
+const load=k=>{try{return JSON.parse(localStorage.getItem(k)||'[]')}catch(e){return []}};
+
+const save=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+
+let ideas=load('novaIdeas'),tasks=load('novaTasks');
+
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+function render(){
+
+document.getElementById('ideaCount').textContent=ideas.length;
+
+document.getElementById('doneCount').textContent=tasks.filter(t=>t.done).length;
+
+document.getElementById('ideas').innerHTML=ideas.map((x,i)=>'<div class="item"><span><b>'+esc(x.title)+'</b><br>'+esc(x.text)+'</span><button onclick="delIdea('+i+')">✕</button></div>').join('');
+
+document.getElementById('tasks').innerHTML=tasks.map((x,i)=>'<div class="item"><input type="checkbox" style="width:auto" '+(x.done?'checked':'')+' onchange="toggleTask('+i+')"><span style="'+(x.done?'text-decoration:line-through':'')+'">'+esc(x.text)+'</span><button onclick="delTask('+i+')">✕</button></div>').join('');
+
+}
+
+function addIdea(){
+
+let title=document.getElementById('ideaTitle').value.trim(),text=document.getElementById('ideaText').value.trim();
+
+if(!title){alert('Donne un nom à ton idée.');return}
+
+ideas.unshift({title,text});save('novaIdeas',ideas);
+
+document.getElementById('ideaTitle').value='';document.getElementById('ideaText').value='';render();
+
+}
+
+function delIdea(i){ideas.splice(i,1);save('novaIdeas',ideas);render()}
+
+function addTask(){
+
+let el=document.getElementById('taskInput'),text=el.value.trim();if(!text)return;
+
+tasks.unshift({text,done:false});save('novaTasks',tasks);el.value='';render();
+
+}
+
+function toggleTask(i){tasks[i].done=!tasks[i].done;save('novaTasks',tasks);render()}
+
+function delTask(i){tasks.splice(i,1);save('novaTasks',tasks);render()}
+
+document.getElementById('chatForm').addEventListener('submit',e=>{
+
+e.preventDefault();
+
+let el=document.getElementById('chatInput'),q=el.value.trim();if(!q)return;
+
+addMessage(q,'user');el.value='';
+
+let a;
+
+if(/bonjour|salut|bonsoir|hello/i.test(q))a="Salut ! Comment puis-je t'aider aujourd'hui ?";
+
+else if(/projet|idée|idee|business|commerce|argent/i.test(q))a="Pour avancer, définis ton objectif, les personnes que tu veux aider et les moyens dont tu disposes. Commence par une petite version et teste-la.";
+
+else if(/étude|etude|cours|apprendre/i.test(q))a="Choisis un sujet précis, divise-le en petites étapes et étudie régulièrement. Quel sujet veux-tu apprendre ?";
+
+else if(/merci/i.test(q))a="Avec plaisir ! Pense à enregistrer ta prochaine action dans Mes tâches.";
+
+else a="Je suis actuellement en version de démonstration. Pour répondre comme une véritable IA, je dois encore être connecté à un service d'intelligence artificielle.";
+
+addMessage(a,'bot');
+
+});
+
+function addMessage(t,c){let d=document.createElement('div');d.className='msg '+c;d.textContent=t;let chat=document.getElementById('chat');chat.appendChild(d);chat.scrollTop=chat.scrollHeight}
+
+render();
+
+</script>
+
+</body>
+
+</html>
